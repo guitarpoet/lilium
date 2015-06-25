@@ -1,5 +1,6 @@
 class Ajax {
-	render() {
-		return <div> </div>
+	constructor() {
 	}
 }
+
+provides([Ajax]);
