@@ -8,12 +8,55 @@
 //
 //==============================================================================
 
-if(typeof functionName !== 'function') {
+if(typeof functionName !== 'global') {
+	var global = function(name, value) {
+		if(typeof window === 'undefined') { // Add global support for nodejs
+			var window = GLOBAL;
+		}
+		
+		if(typeof value === 'undefined') {
+			return window[name];
+		}
+		else {
+			window[name] = value;
+		}
+	}
+}
+
+if(typeof functionName !== 'defineIfNotExists') {
 	/**
-	 * Get the name of the function, though, you can use function.name to get it,
-	 * try this function for browser compatability
+	 * Test if the function is exists, if not exists then define it
+	 * NOTE: This will define the function into the global environment
 	 */
-	var functionName = function(fun) {
+	var defineIfNotExists = function(name, func) {
+		let f = global(name);
+		if(typeof f === 'function') {
+			return f;
+		}
+		global(name, func);
+		return func;
+	}
+
+	var def = defineIfNotExists;
+
+	def('def', def); // Define the def function to global
+}
+
+def('global', global); // Define the global function to global
+
+def('local', function(name, func) {
+	let f = global(name);
+	if(typeof f === 'function') {
+		return f;
+	}
+	return func;
+});
+
+/**
+ * Get the name of the function, though, you can use function.name to get it,
+ * try this function for browser compatability
+ */
+def("functionName", function(fun) {
 		if(fun) {
 			if(typeof fun.name !== 'undefined') {
 				return fun.name;
@@ -24,11 +67,10 @@ if(typeof functionName !== 'function') {
 			return ret;
 		}
 		return null;
-	}
-}
+});
 
-if(typeof provides !== 'function') {
-	var provides = function(widgets, module) {
+def('provides', 
+	 function(widgets, module) {
 		if(Object.prototype.toString.call(widgets) === '[object Array]' ) {
 			for(var i = 0;i < widgets.length; i++) {
 				exports[functionName(widgets[i])] = widgets[i];
@@ -39,7 +81,6 @@ if(typeof provides !== 'function') {
 				exports[functionName(widgets)] = widgets;
 			}
 		}
-	}
-}
+});
 
-provides([functionName, provides]);
+provides([global, local, defineIfNotExists, def, functionName, provides]);
