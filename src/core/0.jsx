@@ -8,18 +8,25 @@
 //
 //==============================================================================
 
++(function(){
+
+var root = this;
+
 if(typeof global === 'undefined') {
 	var global = function(name, value) {
 		if(typeof window === 'undefined') { // Add global support for nodejs
 			var window = GLOBAL;
 		}
 		
-		if(typeof value === 'undefined') {
-			return window[name];
+		if(name) {
+			if(typeof value === 'undefined') {
+				return window[name];
+			}
+			else {
+				window[name] = value;
+			}
 		}
-		else {
-			window[name] = value;
-		}
+		return global;
 	}
 }
 
@@ -64,7 +71,7 @@ def('embed', (file) => {
  * Get the name of the function, though, you can use function.name to get it,
  * try this function for browser compatability
  */
-def("functionName", function(fun) {
+def("functionName", (fun) => {
 		if(fun) {
 			if(typeof fun.name !== 'undefined') {
 				return fun.name;
@@ -77,8 +84,7 @@ def("functionName", function(fun) {
 		return null;
 });
 
-def('provides', 
-	 function(widgets, module) {
+def('provides', (widgets, module) => {
 		if(Object.prototype.toString.call(widgets) === '[object Array]' ) {
 			for(var i = 0;i < widgets.length; i++) {
 				exports[functionName(widgets[i])] = widgets[i];
@@ -92,3 +98,5 @@ def('provides',
 });
 
 provides([global, local, defineIfNotExists, def, functionName, provides]);
+
+})();
