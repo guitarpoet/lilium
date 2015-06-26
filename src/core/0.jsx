@@ -8,7 +8,7 @@
 //
 //==============================================================================
 
-if(typeof functionName !== 'global') {
+if(typeof global === 'undefined') {
 	var global = function(name, value) {
 		if(typeof window === 'undefined') { // Add global support for nodejs
 			var window = GLOBAL;
@@ -23,7 +23,7 @@ if(typeof functionName !== 'global') {
 	}
 }
 
-if(typeof functionName !== 'defineIfNotExists') {
+if(typeof defineIfNotExists === 'undefined') {
 	/**
 	 * Test if the function is exists, if not exists then define it
 	 * NOTE: This will define the function into the global environment
@@ -37,19 +37,27 @@ if(typeof functionName !== 'defineIfNotExists') {
 		return func;
 	}
 
-	var def = defineIfNotExists;
-
-	def('def', def); // Define the def function to global
+	defineIfNotExists('def', defineIfNotExists); // Define the def function to global
 }
+
+def('require', () => {});
 
 def('global', global); // Define the global function to global
 
-def('local', function(name, func) {
+def('local', (name, func) => {
 	let f = global(name);
 	if(typeof f === 'function') {
 		return f;
 	}
 	return func;
+});
+
+def('embed', (file) => {
+	let module = require(file);
+	if(module) {
+		return module;
+	}
+	return null;
 });
 
 /**

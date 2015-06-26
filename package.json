@@ -1,0 +1,13 @@
+{
+	"name": "lilium",
+	"version": "1.0.0",
+	"description": "A light weight framework based on ES6.",
+	"license": "BSD-2-Clause",
+	"repository": {
+		"type": "git",
+		"url": "http://github.com/guitarpoet/lilium.git"
+	},
+	"dependencies": {
+		"xhr2": "*"
+	}
+}
