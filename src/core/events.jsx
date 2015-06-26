@@ -19,8 +19,7 @@ const slice          = Array.prototype.slice
 var str2arr = (s, d) => { return s.split(d || ' ') }
 var isString = (o) => { return typeof o == 'string' }
 var isFunction = (o) => { return typeof o == 'function' }
-// TODO: Add more selector engine support
-var selectorEngine = (s, r) => { return r.querySelectorAll(s); }
+var selectorEngine = local('selectorEngine', (s, r) => { return r.querySelectorAll(s); });
 
 //==============================================================================
 //
@@ -407,6 +406,339 @@ class Registry {
 	}
 }
 
+class EventSource {
+	addEventListener(event, func) {
+		events.on(this, event, func);
+	}
+
+	removeEventListener(event, func) {
+		events.off(this, event, func);
+	}
+	
+	fire(event, args) {
+		events.fire(this, event, args);
+	}
+}
+
+//==============================================================================
+//
+// Variables
+//
+//==============================================================================
+
 var registry = new Registry();
+
+var rootListener = local('rootListener', (event, type) => {
+	if (!W3C_MODEL && type && event && event.propertyName != '_on' + type)
+		return;
+
+	var listeners = registry.get(this, type || event.type, null, false);
+	var l = listeners.length;
+	var i = 0;
+
+	event = new Event(event, this, true);
+	if (type)
+		event.type = type;
+
+	// iterate through all handlers registered for this type, calling them unless they have
+	// been removed by a previous handler or stopImmediatePropagation() has been called
+	for(let item of listeners) {
+		if(!event.isImmediatePropagationStopped()) {
+			break;
+		}
+		if(!item.removed) {
+			item.handler.call(this, event);
+		}
+	}
+});
+
+var listener = W3C_MODEL
+? (element, type, add) => {
+	// new browsers
+	element[add ? addEvent : removeEvent](type, rootListener, false)
+}
+: (element, type, add, custom) => {
+	// IE8 and below, use attachEvent/detachEvent and we have to piggy-back propertychange events
+	// to simulate event bubbling etc.
+	var entry;
+	if (add) {
+		registry.put(entry = new RegEntry(
+			element
+			, custom || type
+			, (event) => { // handler
+				rootListener.call(element, event, custom)
+			}
+			, rootListener
+			, null
+			, null
+			, true // is root
+		));
+		if (custom && element['_on' + custom] == null)
+			element['_on' + custom] = 0;
+		entry.target.attachEvent('on' + entry.eventType, entry.handler)
+	} 
+	else {
+		entry = registry.get(element, custom || type, rootListener, true)[0];
+		if (entry) {
+			entry.target.detachEvent('on' + entry.eventType, entry.handler)
+			registry.del(entry)
+		}
+	}
+}
+
+var once = (rm, element, type, fn, originalFn) => {
+	// wrap the handler in a handler that does a remove as well
+	return () => {
+		fn.apply(this, arguments)
+		rm(element, type, originalFn)
+	}
+}
+
+var removeListener = (element, orgType, handler, namespaces) => {
+	let type = orgType && orgType.replace(nameRegex, '');
+	let handlers = registry.get(element, type, null, false);
+	let removed  = {};
+
+	for(let item of handlers) {
+		if((!handler || item.original === handler) && item.inNamespaces(namespaces)) {
+			// TODO: this is problematic, we have a registry.get() and registry.del() that
+			// both do registry searches so we waste cycles doing this. Needs to be rolled into
+			// a single registry.forAll(fn) that removes while finding, but the catch is that
+			// we'll be splicing the arrays that we're iterating over. Needs extra tests to
+			// make sure we don't screw it up. @rvagg
+			registry.del(item);
+			if (!removed[item.eventType] && item[eventSupport]) {
+				removed[item.eventType] = { t: item.eventType, c: item.type };
+			}
+		}
+	}
+
+	// check each type/element for removed listeners and remove the rootListener where it's no longer needed
+	for (let i in removed) {
+		if (!registry.has(element, removed[i].t, null, false)) {
+			// last listener of this type, remove the rootListener
+			listener(element, removed[i].t, false, removed[i].c)
+		}
+	}
+}
+
+var delegate = (selector, fn) => {
+	//TODO: findTarget (therefore $) is called twice, once for match and once for
+	// setting e.currentTarget, fix this so it's only needed once
+	var findTarget = (target, root) => {
+		var i, array = isString(selector) ? selectorEngine(selector, root) : selector
+		for (; target && target !== root; target = target.parentNode) {
+			for (i = array.length; i--;) {
+				if (array[i] === target)
+					return target;
+			}
+		}
+	}
+
+	var handler = (e) => {
+		var match = findTarget(e.target, this)
+		if (match)
+			fn.apply(match, arguments)
+	}
+
+	// __beanDel isn't pleasant but it's a private function, not exposed outside of Bean
+	handler.__beanDel = {
+		ft : findTarget // attach it here for customEvents to use too
+		, selector : selector
+	}
+	return handler;
+}
+
+var fireListener = W3C_MODEL ? (isNative, type, element) => {
+	// modern browsers, do a proper dispatchEvent()
+	var evt = doc.createEvent(isNative ? 'HTMLEvents' : 'UIEvents');
+	evt[isNative ? 'initEvent' : 'initUIEvent'](type, true, true, win, 1);
+	element.dispatchEvent(evt);
+} 
+: (isNative, type, element) => {
+	// old browser use onpropertychange, just increment a custom property to trigger the event
+	element = targetElement(element, isNative);
+	isNative ? element.fireEvent('on' + type, doc.createEventObject()) : element['_on' + type]++;
+}
+
+
+/**
+ * off(element[, eventType(s)[, handler ]])
+ */
+var off = (element, typeSpec, fn) => {
+	var isTypeStr = isString(typeSpec);
+	var k, type, namespaces, i;
+
+	if (isTypeStr && typeSpec.indexOf(' ') > 0) {
+		// off(el, 't1 t2 t3', fn) or off(el, 't1 t2 t3')
+		for(let item of str2arr(typeSpec)) {
+			off(element, item, fn)
+		}
+		return element;
+	}
+
+	type = isTypeStr && typeSpec.replace(nameRegex, '');
+	if (type && customEvents[type])
+		type = customEvents[type].base;
+
+	if (!typeSpec || isTypeStr) {
+		// off(el) or off(el, t1.ns) or off(el, .ns) or off(el, .ns1.ns2.ns3)
+		if (namespaces = isTypeStr && typeSpec.replace(namespaceRegex, ''))
+			namespaces = str2arr(namespaces, '.');
+		removeListener(element, type, fn, namespaces);
+	}
+	else if (isFunction(typeSpec)) {
+		// off(el, fn)
+		removeListener(element, null, typeSpec);
+	}
+	else {
+		// off(el, { t1: fn1, t2, fn2 })
+		for (k in typeSpec) {
+			if (typeSpec.hasOwnProperty(k))
+				off(element, k, typeSpec[k]);
+		}
+	}
+
+	return element;
+}
+
+/**
+* on(element, eventType(s)[, selector], handler[, args ])
+*/
+var on = (element, events, selector, fn) => {
+	var originalFn, type, types, i, args, entry, first;
+
+	//TODO: the undefined check means you can't pass an 'args' argument, fix this perhaps?
+	if (selector === undefined && typeof events == 'object') {
+		//TODO: this can't handle delegated events
+		for (type in events) {
+			if (events.hasOwnProperty(type)) {
+				on.call(this, element, type, events[type])
+			}
+		}
+		return;
+	}
+
+	if (!isFunction(selector)) {
+		// delegated event
+		originalFn = fn;
+		args       = slice.call(arguments, 4);
+		fn         = delegate(selector, originalFn, selectorEngine);
+	}
+	else {
+		args       = slice.call(arguments, 3);
+		fn         = originalFn = selector;
+	}
+
+	types = str2arr(events)
+
+	// special case for one(), wrap in a self-removing handler
+	if (this === ONE) {
+		fn = once(off, element, events, fn, originalFn);
+	}
+
+	for (i = types.length; i--;) {
+		// add new handler to the registry and check if it's the first for this element/type
+		first = registry.put(entry = new RegEntry(
+			element
+			, types[i].replace(nameRegex, '') // event type
+			, fn
+			, originalFn
+			, str2arr(types[i].replace(namespaceRegex, ''), '.') // namespaces
+			, args
+			, false // not root
+		));
+		if (entry[eventSupport] && first) {
+			// first event of this type on this element, add root listener
+			listener(element, entry.eventType, true, entry.customType);
+		}
+	}
+
+	return element;
+}
+
+/**
+ * one(element, eventType(s)[, selector], handler[, args ])
+ */
+var one = () => {
+	return on.apply(ONE, arguments);
+}
+
+/**
+ * fire(element, eventType(s)[, args ])
+ *
+ * The optional 'args' argument must be an array, if no 'args' argument is provided
+ * then we can use the browser's DOM event system, otherwise we trigger handlers manually
+ */
+var fire = (element, type, args) => {
+	var types = str2arr(type);
+	var i, j, l, names, handlers;
+
+	for (i = types.length; i--;) {
+		type = types[i].replace(nameRegex, '');
+		if (names = types[i].replace(namespaceRegex, ''))
+			names = str2arr(names, '.');
+
+		if (!names && !args && element[eventSupport]) {
+			fireListener(nativeEvents[type], type, element)
+		}
+		else {
+			// non-native event, either because of a namespace, arguments or a non DOM element
+			// iterate over all listeners and manually 'fire'
+			handlers = registry.get(element, type, null, false)
+			args = [false].concat(args)
+			for(let handler of handlers) {
+				if (handler.inNamespaces(names)) {
+					handler.handler.apply(element, args);
+				}
+			}
+		}
+	}
+	return element;
+}
+
+var clone = (element, from, type) => {
+	var handlers = registry.get(from, type, null, false)
+	var l = handlers.length;
+	var i = 0;
+	var args, beanDel;
+
+	for(let handler of handlers) {
+		if (handler.original) {
+			args = [ element, handler.type ]
+			if (beanDel = handler.handler.__beanDel)
+				args.push(beanDel.selector)
+			args.push(handler.original)
+			on.apply(null, args)
+		}
+	}
+	return element;
+}
+
+var events = {
+	  'on'                : on
+	, 'one'               : one
+	, 'off'               : off
+	, 'remove'            : off
+	, 'clone'             : clone
+	, 'fire'              : fire
+	, 'Event'             : Event
+}
+
+// for IE, clean up on unload to avoid leaks
+if (win.attachEvent) {
+	var cleanup = () => {
+		var i, entries = registry.entries()
+		for (i in entries) {
+			if (entries[i].type && entries[i].type !== 'unload')
+				off(entries[i].element, entries[i].type);
+		}
+		win.detachEvent('onunload', cleanup)
+		win.CollectGarbage && win.CollectGarbage()
+	}
+	win.attachEvent('onunload', cleanup)
+}
+
+provides([events, EventSource]);
 
 })();

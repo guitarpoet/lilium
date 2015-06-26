@@ -43,8 +43,7 @@ JASMINE=jasmine
 #===============================================================================
 CORE_FILES=$(wildcard src/core/*.jsx)
 DS_FILES=$(wildcard src/ds/*.jsx)
-EVENT_FILES=$(wildcard src/event/*.jsx)
-DIST_FILES= ${SPEC_DIR}/core.js ${SPEC_DIR}/event.js ${SPEC_DIR}/ds.js
+DIST_FILES= ${SPEC_DIR}/core.js ${SPEC_DIR}/ds.js
 TEST_FILES=$(call rwildcard, tests, *.jsx)
 TEST_DIST_FILES=$(foreach f, ${TEST_FILES:jsx=js}, ${SPEC_DIR}/${f})
 
@@ -75,11 +74,6 @@ ${TEST_DIST_FILES}: ${TEST_FILES}
 ${SPEC_DIR}/core.js: ${CORE_FILES}
 	@${ECHO} "Compiling Core..."
 	@${BABEL} -o ${SPEC_DIR}/core.js ${CORE_FILES}
-	@${ECHO} "Done."
-
-${SPEC_DIR}/event.js: ${EVENT_FILES}
-	@${ECHO} "Compiling Event..."
-	@${BABEL} -o ${SPEC_DIR}/event.js ${EVENT_FILES}
 	@${ECHO} "Done."
 
 ${SPEC_DIR}/ds.js: ${DS_FILES}
