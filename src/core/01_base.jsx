@@ -38,9 +38,12 @@ if(typeof defineIfNotExists === 'undefined') {
 	var defineIfNotExists = function(name, func) {
 		let f = global(name);
 		if(typeof f === 'function') {
+			f.alias = name;
 			return f;
 		}
 		global(name, func);
+		if(func)
+			func.alias = name;
 		return func;
 	}
 
@@ -56,8 +59,11 @@ global('lilium', {}); // Define the global lilium
 def('local', (name, func) => {
 	let f = global(name);
 	if(typeof f === 'function') {
+		f.alias = name;
 		return f;
 	}
+	if(func)
+		func.alias = name;
 	return func;
 });
 
@@ -81,8 +87,11 @@ var isArray = local('isArray', (o) => {
  * Get the name of the function, though, you can use function.name to get it,
  * try this function for browser compatability
  */
-def("functionName", (fun) => {
+var functionName = local("functionName", (fun) => {
 		if(fun) {
+			if(typeof fun.alias !== 'undefined') {
+				return fun.alias;
+			}
 			if(typeof fun.name !== 'undefined') {
 				return fun.name;
 			}
@@ -94,6 +103,9 @@ def("functionName", (fun) => {
 		return null;
 });
 
+/**
+ * Provide the widget and functions for module
+ */
 def('provides', (widgets, module) => {
 		if(isArray(widgets)) {
 			for(let widget of widgets) {
@@ -111,6 +123,6 @@ def('provides', (widgets, module) => {
 		}
 });
 
-provides([global, local, defineIfNotExists, def, functionName, provides], 'core');
+provides([global, local, defineIfNotExists, provides], 'core');
 
 })();
