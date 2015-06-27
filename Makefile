@@ -46,6 +46,16 @@ DS_FILES=$(wildcard src/ds/*.jsx)
 DIST_FILES= ${SPEC_DIR}/core.js ${SPEC_DIR}/ds.js
 TEST_FILES=$(call rwildcard, tests, *.jsx)
 TEST_DIST_FILES=$(foreach f, ${TEST_FILES:jsx=js}, ${SPEC_DIR}/${f})
+TEST_MAP_FILES=$(foreach f, ${TEST_FILES:jsx=js.map}, ${SPEC_DIR}/${f})
+
+#===============================================================================
+#
+# Patterns
+#
+#===============================================================================
+
+${SPEC_DIR}/%_spec.js.map : %_spec.jsx
+	@${BABEL} -d ${SPEC_DIR} -s $@ $<
 
 #===============================================================================
 #
@@ -63,13 +73,8 @@ clean:
 	@${RM} ${SPEC_DIR}/*.js ${SPEC_DIR}/*.map ${SPEC_DIR}/tests
 	@${ECHO} "Done."
 
-test: compile ${TEST_DIST_FILES}
+test: compile ${TEST_MAP_FILES}
 	@${JASMINE}
-
-${TEST_DIST_FILES}: ${TEST_FILES} 
-	@${ECHO} "Compiling Test..."
-	@${BABEL} -d ${SPEC_DIR} ${TEST_FILES}
-	@${ECHO} "Done."
 
 ${SPEC_DIR}/core.js: ${CORE_FILES}
 	@${ECHO} "Compiling Core..."

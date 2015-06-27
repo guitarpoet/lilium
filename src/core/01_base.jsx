@@ -11,6 +11,17 @@
 +(function(){
 
 class Lilium {
+
+	sourceMap() {
+		if(this.inNode()) {
+			require('source-map-support').install();
+		}
+	}
+
+	inNode() {
+		return typeof GLOBAL == 'object';
+	}
+
 	global(name, value) {
 		let w = null;
 		if(typeof window === 'undefined') { // Add global support for nodejs
@@ -95,6 +106,8 @@ class Lilium {
 }
 
 var lilium = new Lilium();
+
+lilium.sourceMap();
 
 lilium.defineIfNotExists('def', (name, func) => { return lilium.defineIfNotExists(name, func); });
 
