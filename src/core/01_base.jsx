@@ -58,6 +58,21 @@ class Lilium {
 		return func;
 	}
 
+	removeElement(a, e) {
+		if(this.isArray(a)) {
+			let index = a.indexOf(e);
+			if(index != -1)
+				return a.splice(index, 1);
+		}
+		return [];
+	}
+
+	clone(a) {
+		if(this.isArray(a))
+			return a.slice(0);	
+		return null;
+	}
+
 	isArray(o) {
 		return Object.prototype.toString.call(o) === '[object Array]';
 	}
