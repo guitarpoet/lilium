@@ -47,9 +47,11 @@ if(typeof defineIfNotExists === 'undefined') {
 	defineIfNotExists('def', defineIfNotExists); // Define the def function to global
 }
 
-def('require', () => {});
+def('require', () => {}); // TODO: Define require if no require is defined
 
 def('global', global); // Define the global function to global
+
+global('lilium', {}); // Define the global lilium
 
 def('local', (name, func) => {
 	let f = global(name);
@@ -59,12 +61,20 @@ def('local', (name, func) => {
 	return func;
 });
 
-def('embed', (file) => {
-	let module = require(file);
-	if(module) {
-		return module;
+def('embed', (module) => {
+	if(lilium[module]) {
+		return lilium[module];
+	}
+
+	let m = require(module);
+	if(m) {
+		return m;
 	}
 	return null;
+});
+
+var isArray = local('isArray', (o) => {
+	return Object.prototype.toString.call(o) === '[object Array]';
 });
 
 /**
@@ -85,18 +95,22 @@ def("functionName", (fun) => {
 });
 
 def('provides', (widgets, module) => {
-		if(Object.prototype.toString.call(widgets) === '[object Array]' ) {
-			for(var i = 0;i < widgets.length; i++) {
-				exports[functionName(widgets[i])] = widgets[i];
+		if(isArray(widgets)) {
+			for(let widget of widgets) {
+				exports[functionName(widget)] = widget;
 			}
 		}
 		else {
-			if(typeof widgets === 'function') {
-				exports[functionName(widgets)] = widgets;
-			}
+			exports[functionName(widgets)] = widgets;
+		}
+		
+		lilium[module] = lilium[module] || {};
+
+		for(let k in exports) {
+			lilium[module][k] = exports[k];
 		}
 });
 
-provides([global, local, defineIfNotExists, def, functionName, provides]);
+provides([global, local, defineIfNotExists, def, functionName, provides], 'core');
 
 })();

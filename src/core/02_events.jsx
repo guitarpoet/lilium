@@ -739,6 +739,8 @@ if (win.attachEvent) {
 	win.attachEvent('onunload', cleanup)
 }
 
-provides([events, EventSource]);
+global('events', events);
+
+provides([EventSource], 'core');
 
 })();
