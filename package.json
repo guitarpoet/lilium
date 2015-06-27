@@ -8,6 +8,7 @@
 		"url": "http://github.com/guitarpoet/lilium.git"
 	},
 	"dependencies": {
-		"xhr2": "*"
+		"xmlhttprequest": "*",
+		"sleep": "*"
 	}
 }

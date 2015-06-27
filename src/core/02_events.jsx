@@ -740,6 +740,7 @@ if (win.attachEvent) {
 }
 
 lilium.global('events', events);
+lilium.events = events;
 
 provides([EventSource], 'core');
 

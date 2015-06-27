@@ -33,18 +33,19 @@ class Ajax {
 
 			// Handle timeout
 			if(this.timeout && this.timeout > 0) {
+				var xhr = this.xhr;
 				this.timeout_handle = setTimeout(() => {
-					this.xhr.abort();
-					reject('TIMEOUT', 'Ajax request to url #{url} has timeout!');
+					reject('TIMEOUT', 'Ajax request to url ' + url + ' has timeout!');
+					xhr.abort();
 				}, this.timeout);
 			}
 
 			// Handle response
-			this.xhr.onreadystatechange = function() {
-				if (this.timeout_handle) {
-					clearTimeout(this.timeout_handle);
-				}
+			this.xhr.onreadystatechange = () => {
 				if (this.xhr.readyState === 4) {
+					if (this.timeout_handle) {
+						clearTimeout(this.timeout_handle);
+					}
 					if(!this.xhr.status || (this.xhr.status < 200 || this.xhr.status >= 300) && this.xhr.status !== 304) {
 						reject(this.xhr.status, this.xhr.responseText, xhr);
 					}
@@ -78,16 +79,15 @@ class Ajax {
 	}
 
 	getXhr() {
-		let f = lilium.global('XMLHttpRequest');
-		if(typeof f !== 'undefined') {
-			return new f();
+		if(typeof XMLHttpRequest !== 'undefined') {
+			return new XMLHttpRequest();
 		}
 		else {
 			if(typeof ActiveXObject !== 'undefined')
 				return new ActiveXObject("Microsoft.XMLHTTP");
 			else {
-				let XMLHttpRequest = embed('xhr2');
-				return new XMLHttpRequest();
+				let x = embed('xmlhttprequest').XMLHttpRequest;
+				return new x();
 			}
 		}
 	}

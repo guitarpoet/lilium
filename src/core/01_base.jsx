@@ -12,19 +12,23 @@
 
 class Lilium {
 	global(name, value) {
+		let w = null;
 		if(typeof window === 'undefined') { // Add global support for nodejs
-			var window = GLOBAL;
+			w = GLOBAL;
+		}
+		else {
+			w = window;
 		}
 		
 		if(name) {
 			if(typeof value === 'undefined') {
-				return window[name];
+				return w[name];
 			}
 			else {
-				window[name] = value;
+				w[name] = value;
 			}
 		}
-		return global;
+		return w;
 	}
 
 	local(name, func) {
@@ -97,19 +101,28 @@ def('embed', (module) => {
  * Provide the widget and functions for module
  */
 def('provides', (widgets, module) => {
+	var e = null;
+
+	if(typeof exports !== 'undefined') {
+		e = exports;
+	}
+	else if(typeof window !== 'undefined') {
+		e = window;	
+	}
+
 	if(lilium.isArray(widgets)) {
 		for(let widget of widgets) {
-			exports[lilium.getName(widget)] = widget;
+			e[lilium.getName(widget)] = widget;
 		}
 	}
 	else {
-		exports[lilium.getName(widgets)] = widgets;
+		e[lilium.getName(widgets)] = widgets;
 	}
 	
 	lilium[module] = lilium[module] || {};
 
-	for(let k in exports) {
-		lilium[module][k] = exports[k];
+	for(let k in e) {
+		lilium[module][k] = e[k];
 	}
 });
 

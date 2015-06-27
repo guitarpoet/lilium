@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+	<script src="core.js"></script>
+	<script>
+		var a = new lilium.core.Ajax();
+		a.exec('GET', '#').then(function(data){
+			console.info(data);
+		}).catch(function(e){
+			console.dir(e);
+		});
+	</script>
+</head>
+<body>
+	
+</body>
+</html>
