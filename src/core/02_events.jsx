@@ -19,14 +19,14 @@ const slice          = Array.prototype.slice
 var str2arr = (s, d) => { return s.split(d || ' ') }
 var isString = (o) => { return typeof o == 'string' }
 var isFunction = (o) => { return typeof o == 'function' }
-var selectorEngine = local('selectorEngine', (s, r) => { return r.querySelectorAll(s); });
+var selectorEngine = lilium.local('selectorEngine', (s, r) => { return r.querySelectorAll(s); });
 
 //==============================================================================
 //
 // Definitions
 //
 //==============================================================================
-const win = global();
+const win = lilium.global();
 const navigator = typeof navigator !== 'undefined' ? navigator : {};
 const namespaceRegex = /[^\.]*(?=\..*)\.|.*/;
 const nameRegex      = /\..*/;
@@ -428,7 +428,7 @@ class EventSource {
 
 var registry = new Registry();
 
-var rootListener = local('rootListener', (event, type) => {
+var rootListener = lilium.local('rootListener', (event, type) => {
 	if (!W3C_MODEL && type && event && event.propertyName != '_on' + type)
 		return;
 
@@ -739,7 +739,7 @@ if (win.attachEvent) {
 	win.attachEvent('onunload', cleanup)
 }
 
-global('events', events);
+lilium.global('events', events);
 
 provides([EventSource], 'core');
 

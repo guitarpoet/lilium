@@ -78,7 +78,7 @@ class Ajax {
 	}
 
 	getXhr() {
-		let f = global('XMLHttpRequest');
+		let f = lilium.global('XMLHttpRequest');
 		if(typeof f !== 'undefined') {
 			return new f();
 		}
@@ -93,4 +93,4 @@ class Ajax {
 	}
 }
 
-provides([Ajax]);
+provides([Ajax], 'core');

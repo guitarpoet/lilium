@@ -10,10 +10,8 @@
 
 +(function(){
 
-var root = this;
-
-if(typeof global === 'undefined') {
-	var global = function(name, value) {
+class Lilium {
+	global(name, value) {
 		if(typeof window === 'undefined') { // Add global support for nodejs
 			var window = GLOBAL;
 		}
@@ -28,45 +26,61 @@ if(typeof global === 'undefined') {
 		}
 		return global;
 	}
-}
 
-if(typeof defineIfNotExists === 'undefined') {
-	/**
-	 * Test if the function is exists, if not exists then define it
-	 * NOTE: This will define the function into the global environment
-	 */
-	var defineIfNotExists = function(name, func) {
-		let f = global(name);
+	local(name, func) {
+		let f = this.global(name);
 		if(typeof f === 'function') {
 			f.alias = name;
 			return f;
 		}
-		global(name, func);
 		if(func)
 			func.alias = name;
 		return func;
 	}
 
-	defineIfNotExists('def', defineIfNotExists); // Define the def function to global
+	/**
+	 * Test if the function is exists, if not exists then define it
+	 * NOTE: This will define the function into the global environment
+	 */
+	defineIfNotExists(name, func) {
+		let f = this.global(name);
+		if(typeof f === 'function') {
+			f.alias = name;
+			return f;
+		}
+		this.global(name, func);
+		if(func)
+			func.alias = name;
+		return func;
+	}
+
+	isArray(o) {
+		return Object.prototype.toString.call(o) === '[object Array]';
+	}
+
+	getName(o) {
+		if(o) {
+			if(typeof o.alias !== 'undefined') {
+				return o.alias;
+			}
+			if(typeof o.name !== 'undefined') {
+				return o.name;
+			}
+			let ret = o.toString();
+			ret = ret.substr('function '.length);
+			ret = ret.substr(0, ret.indexOf('('));
+			return ret;
+		}
+		return null;
+	}
 }
 
+var lilium = new Lilium();
+
+lilium.defineIfNotExists('def', (name, func) => { return lilium.defineIfNotExists(name, func); });
+
+def('lilium', lilium);
 def('require', () => {}); // TODO: Define require if no require is defined
-
-def('global', global); // Define the global function to global
-
-global('lilium', {}); // Define the global lilium
-
-def('local', (name, func) => {
-	let f = global(name);
-	if(typeof f === 'function') {
-		f.alias = name;
-		return f;
-	}
-	if(func)
-		func.alias = name;
-	return func;
-});
-
 def('embed', (module) => {
 	if(lilium[module]) {
 		return lilium[module];
@@ -79,50 +93,26 @@ def('embed', (module) => {
 	return null;
 });
 
-var isArray = local('isArray', (o) => {
-	return Object.prototype.toString.call(o) === '[object Array]';
-});
-
-/**
- * Get the name of the function, though, you can use function.name to get it,
- * try this function for browser compatability
- */
-var functionName = local("functionName", (fun) => {
-		if(fun) {
-			if(typeof fun.alias !== 'undefined') {
-				return fun.alias;
-			}
-			if(typeof fun.name !== 'undefined') {
-				return fun.name;
-			}
-			let ret = fun.toString();
-			ret = ret.substr('function '.length);
-			ret = ret.substr(0, ret.indexOf('('));
-			return ret;
-		}
-		return null;
-});
-
 /**
  * Provide the widget and functions for module
  */
 def('provides', (widgets, module) => {
-		if(isArray(widgets)) {
-			for(let widget of widgets) {
-				exports[functionName(widget)] = widget;
-			}
+	if(lilium.isArray(widgets)) {
+		for(let widget of widgets) {
+			exports[lilium.getName(widget)] = widget;
 		}
-		else {
-			exports[functionName(widgets)] = widgets;
-		}
-		
-		lilium[module] = lilium[module] || {};
+	}
+	else {
+		exports[lilium.getName(widgets)] = widgets;
+	}
+	
+	lilium[module] = lilium[module] || {};
 
-		for(let k in exports) {
-			lilium[module][k] = exports[k];
-		}
+	for(let k in exports) {
+		lilium[module][k] = exports[k];
+	}
 });
 
-provides([global, local, defineIfNotExists, provides], 'core');
+provides([Lilium, def], 'core');
 
 })();

@@ -1,6 +1,6 @@
-let core = require('../../core.js');
+var core = require('../../core.js');
 
-class EventSourceSample extends core.EventSource {
+class EventSourceSample extends lilium.core.EventSource {
 	test() {
 		this.fire('hello', 'world');
 	}
