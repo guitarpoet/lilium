@@ -1,6 +1,52 @@
+//==============================================================================
+//
+// The cross platform ajax support part. This part will support nodejs and
+// all the mainstream browsers.
+//
+// Will use XMLHttpRequest as default implementation, and will use nodejs's
+// xmlhttprequest as the implmenentation in nodejs.
+//
+// @author Jack
+// @version 1.0
+// @date Sat Jun 27 13:29:22 2015
+//
+//==============================================================================
+
++(function(){
+
+
+/**
+ * The Ajax api that uses ES6 Promise, you can use as this:
+ * 
+ * <code>
+ * 		Ajax.get('/a.json')
+ * 			.then(function(data) { console.info(data); })
+ * 			.catch(function(error) { console.info(error); });
+ * </code>
+ */
 class Ajax {
 	constructor() {
 		this.xhr = this.getXhr();
+	}
+
+	get(url, data, headers) {
+		return this.exec('GET', url, data, headers);
+	}
+
+	post(url, data, headers) {
+		return this.exec('POST', url, data, headers);
+	}
+
+	put(url, data, headers) {
+		return this.exec('PUT', url, data, headers);
+	}
+
+	delete(url, headers) {
+		return this.exec('DELETE', url, null, headers);
+	}
+
+	head(url, data, headers) {
+		return this.exec('HEAD', url, data, headers);
 	}
 
 	exec(method, url, data, headers) {
@@ -94,3 +140,5 @@ class Ajax {
 }
 
 provides([Ajax], 'core');
+
+})();

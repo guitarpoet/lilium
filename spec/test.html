@@ -6,7 +6,7 @@
 	<script src="core.js"></script>
 	<script>
 		var a = new lilium.core.Ajax();
-		a.exec('GET', '#').then(function(data){
+		a.head('#').then(function(data){
 			console.info(data);
 		}).catch(function(e){
 			console.dir(e);
