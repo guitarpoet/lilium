@@ -1,5 +1,4 @@
 var core = require('../../core.js');
-var sleep = embed('sleep');
 
 describe("core.ajax.suite", function() {
 	it("xhr.test", function() {
