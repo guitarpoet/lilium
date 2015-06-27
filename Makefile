@@ -60,7 +60,7 @@ compile: ${DIST_FILES}
 
 clean: 
 	@${ECHO} "Cleaning..."
-	@${RM} ${SPEC_DIR}/*.js ${SPEC_DIR}/tests
+	@${RM} ${SPEC_DIR}/*.js ${SPEC_DIR}/*.map ${SPEC_DIR}/tests
 	@${ECHO} "Done."
 
 test: compile ${TEST_DIST_FILES}
@@ -73,12 +73,12 @@ ${TEST_DIST_FILES}: ${TEST_FILES}
 
 ${SPEC_DIR}/core.js: ${CORE_FILES}
 	@${ECHO} "Compiling Core..."
-	@${BABEL} -o ${SPEC_DIR}/core.js ${CORE_FILES}
+	@${BABEL} -o ${SPEC_DIR}/core.js -s ${SPEC_DIR}/core.js.map ${CORE_FILES}
 	@${ECHO} "Done."
 
 ${SPEC_DIR}/ds.js: ${DS_FILES}
 	@${ECHO} "Compiling DataStore..."
-	@${BABEL} -o ${SPEC_DIR}/ds.js ${DS_FILES}
+	@${BABEL} -o ${SPEC_DIR}/ds.js -s ${SPEC_DIR}/ds.js.map ${DS_FILES}
 	@${ECHO} "Done."
 
 .PHONY: all clean test compile

@@ -9,6 +9,7 @@
 	},
 	"dependencies": {
 		"xmlhttprequest": "*",
-		"sleep": "*"
+		"sleep": "*",
+		"source-map-support": "*"
 	}
 }

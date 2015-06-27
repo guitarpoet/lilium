@@ -61,7 +61,7 @@ describe("core.properties.suite", function() {
 			count.unshift('a.b.c');
 		});
 
-		source.set('a.b.c', 1);
+		source.set('a.b.c', 2);
 		let c = source.childTree("a.b.c");
 		expect(c.value).toBe(1);
 		expect(count).toEqual(['ALL', 'a', 'a.b', 'a.b.c']);
