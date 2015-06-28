@@ -141,10 +141,6 @@ class TreePropertySourceNode extends lilium.core.EventSource {
 		return this.path();
 	}
 
-	value() {
-		return this.value;
-	}
-
 	/**
 	 * Generate the children tree
 	 */

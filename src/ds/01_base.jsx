@@ -18,7 +18,12 @@ class DataStore extends lilium.core.TreePropertySource {
 	constructor(data) {
 		super();
 		if(data) {
-			if(lilium.isObject(data) && !lilium.isArray(data)) {
+			if(lilium.isArray(data)) {
+				for(let i = 0; i < data.length; i++) {
+					this.copy(data[i], i + '');
+				}
+			}
+			else if(lilium.isObject(data)) {
 				this.copy(data);
 			}
 		}
@@ -50,14 +55,16 @@ class DataStore extends lilium.core.TreePropertySource {
 			n.value = data;
 		}
 
-		for(let k in data) {
-			let v = data[k];
-			let p = path ? path + '.' + k : k;
-			if(lilium.isObject(v) && !lilium.isArray(v)) {
-				this.copy(v, p);
-			}
-			else {
-				this.set(p, v);
+		if(lilium.isObject(data)) {
+			for(let k in data) {
+				let v = data[k];
+				let p = path ? path + '.' + k : k;
+				if(lilium.isObject(v) && !lilium.isArray(v)) {
+					this.copy(v, p);
+				}
+				else {
+					this.set(p, v);
+				}
 			}
 		}
 	}
