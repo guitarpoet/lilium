@@ -11,10 +11,10 @@
 # 	- compile: Compile the source code
 # 	- compile_test: Compile the test source code
 # 	- test: Run the test using jasmine (yes, you must have jasmine installed)
+# 	- build: Same as compile
 #   - all: Same as compile compile_test then test, this is the default one
 #
 ################################################################################
-
 
 #===============================================================================
 #
@@ -64,15 +64,16 @@ ${SPEC_DIR}/%_spec.js.map : %_spec.jsx
 #
 #===============================================================================
 
-all: lilium test
-lilium: ${LILIUM}
+all: build test
+
+build: compile
+
 ${LILIUM}: ${CORE_FILES} ${DS_FILES}
 	@${ECHO} "Compiling Lilium."
 	@${BABEL} -o ${LILIUM} -s ${SPEC_DIR}/lilium.js.map ${CORE_FILES} ${DS_FILES}
 	@${ECHO} "Compiled."
 
-compile: ${DIST_FILES}
-	@${ECHO} "Compiled."
+compile: ${DIST_FILES} ${LILIUM}
 
 clean: 
 	@${ECHO} "Cleaning..."
@@ -92,4 +93,4 @@ ${SPEC_DIR}/ds.js: ${DS_FILES}
 	@${BABEL} -o ${SPEC_DIR}/ds.js -s ${SPEC_DIR}/ds.js.map ${DS_FILES}
 	@${ECHO} "Done."
 
-.PHONY: all clean test compile lilium
+.PHONY: all clean test compile build

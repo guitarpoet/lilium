@@ -12,3 +12,26 @@ For this JavaScript framework, I really need these functions:
 4. Smart DataStore that handles data stored in headers, page context, cookie and local storage(maybe flash's local storage too), and have the ability to do sync or async databindings(using ajax through ES6's promise)
 
 And, yet, I found none! So I tried to start a new one.
+
+## Install
+
+To compile or test lilium, you'll need:
+
+1. Have [nodjs](http://nodejs.org) installed: The command line JavaScript runtime
+2. Have [npm](http://www.npmjs.com) installed: You'll need this to install other dependencies of Lilium
+3. Have [jasmine](http://jasmine.github.io) installed: Lilium use this to do the unit test
+4. Have [GNU Make](https://www.gnu.org/software/make/) install: Lilium use this to build
+
+Then, you'll need:
+
+1. Run this command in Lilium's folder
+	
+	npm install
+
+2. Run the makefile
+
+	make build
+
+3. Then test
+	
+	make test
