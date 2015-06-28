@@ -407,11 +407,11 @@ class Registry {
 }
 
 class EventSource {
-	addEventListener(event, func) {
+	addListener(event, func) {
 		events.on(this, event, func);
 	}
 
-	removeEventListener(event, func) {
+	removeListener(event, func) {
 		events.off(this, event, func);
 	}
 	
@@ -428,7 +428,7 @@ class EventSource {
 
 var registry = new Registry();
 
-var rootListener = lilium.local('rootListener', (event, type) => {
+var rootListener = function(event, type) {
 	if (!W3C_MODEL && type && event && event.propertyName != '_on' + type)
 		return;
 
@@ -443,14 +443,14 @@ var rootListener = lilium.local('rootListener', (event, type) => {
 	// iterate through all handlers registered for this type, calling them unless they have
 	// been removed by a previous handler or stopImmediatePropagation() has been called
 	for(let item of listeners) {
-		if(!event.isImmediatePropagationStopped()) {
+		if(event.isImmediatePropagationStopped()) {
 			break;
 		}
 		if(!item.removed) {
 			item.handler.call(this, event);
 		}
 	}
-});
+};
 
 var listener = W3C_MODEL
 ? (element, type, add) => {

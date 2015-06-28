@@ -214,7 +214,7 @@ class TreePropertySource extends TreePropertySourceNode {
 	change(name, func) {
 		var n = this.childTree(name);
 		if(n) {
-			n.addEventListener('change', func);
+			n.addListener('change', func);
 		}
 		return this;
 	}

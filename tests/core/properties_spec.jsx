@@ -7,7 +7,7 @@ class Bean extends lilium.core.PropertySource {
 describe("core.properties.suite", function() {
 	it("properties.source.test", function() {
 		let b = new Bean();
-		b.addEventListener('change', (e) => {
+		b.addListener('change', (e) => {
 			expect(e.propertyName).toBe('a');
 			expect(e.value).toBe(1);
 		})
@@ -59,7 +59,7 @@ describe("core.properties.suite", function() {
 	it("properties.tree.property.source.base.test", function() {
 		let source = new lilium.core.TreePropertySource();
 		var count = [];
-		source.addEventListener('change', (e) => {
+		source.addListener('change', (e) => {
 			count.unshift('ALL');
 		});
 

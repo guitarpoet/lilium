@@ -12,7 +12,7 @@ describe("core.event.suite", function() {
 
 		var a = 1;
 
-		s.addEventListener('hello', (e) => {
+		s.addListener('hello', (e) => {
 			a = 2;
 			expect(e).toBe('world');
 		});

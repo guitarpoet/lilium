@@ -64,10 +64,12 @@ ${SPEC_DIR}/%_spec.js.map : %_spec.jsx
 #
 #===============================================================================
 
-all: ${LILIUM} test
-
+all: lilium test
+lilium: ${LILIUM}
 ${LILIUM}: ${CORE_FILES} ${DS_FILES}
+	@${ECHO} "Compiling Lilium."
 	@${BABEL} -o ${LILIUM} -s ${SPEC_DIR}/lilium.js.map ${CORE_FILES} ${DS_FILES}
+	@${ECHO} "Compiled."
 
 compile: ${DIST_FILES}
 	@${ECHO} "Compiled."
@@ -90,4 +92,4 @@ ${SPEC_DIR}/ds.js: ${DS_FILES}
 	@${BABEL} -o ${SPEC_DIR}/ds.js -s ${SPEC_DIR}/ds.js.map ${DS_FILES}
 	@${ECHO} "Done."
 
-.PHONY: all clean test compile
+.PHONY: all clean test compile lilium
