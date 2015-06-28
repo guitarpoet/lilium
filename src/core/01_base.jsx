@@ -18,6 +18,10 @@ class Lilium {
 		}
 	}
 
+	isObject(o) {
+		return o && (typeof o === "object");
+	}
+
 	inNode() {
 		return typeof GLOBAL == 'object';
 	}

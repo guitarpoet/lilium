@@ -29,6 +29,55 @@ class PropertySource extends lilium.core.EventSource {
 	}
 }
 
+class TreeNodeIterator {
+	constructor(node, type) {
+		if(!type || type == 'depth') {
+			this.type = 'depth';
+		}
+		else {
+			this.type = 'spread';
+		}
+		this.node = node;
+		this.current = node;
+		this.stack = [this.current];
+	}
+
+	path() {
+		return this.current.path();
+	}
+
+	next() {
+		var orig = this.current;
+		while(this.stack.length && orig == this.current) {
+			if(this.type == 'spread') {
+				this.current = this.stack.shift();
+				if(this.current.children) {
+					for(let child of this.current.children) {
+						this.stack.push(child);
+					}
+				}
+			}		
+			else {
+				this.current = this.stack.pop();
+				if(this.current.children) { // Add current ndoe's children to stack
+					for(let i = this.current.children.length - 1; i >= 0; i--) {
+						this.stack.push(this.current.children[i]);
+					}
+				}
+			}
+		}
+		var done = false;
+		if(orig == this.current) {
+			this.current = null;
+			done = true;
+		}
+		return {
+			value: this.current,
+			done: done
+		};
+	}
+}
+
 class TreePropertySourceNode extends lilium.core.EventSource {
 	constructor(name, parent, value) {
 		super();
@@ -39,6 +88,27 @@ class TreePropertySourceNode extends lilium.core.EventSource {
 		this.name = name;
 		if(value)
 			this.value = value;
+
+	}
+
+	nextSibling() {
+		if(this.parent) {
+			let i = this.parent.children.indexOf(this);
+			if(i != -1 && i + 1 < this.parent.children.length) {
+				return this.parent.children[i + 1];
+			}
+		}
+		return null;
+	}
+
+	prevSibling() {
+		if(this.parent) {
+			let i = this.parent.children.indexOf(this);
+			if(i != -1 && i > 0) {
+				return this.parent.children[i - 1];
+			}
+		}
+		return null;
 	}
 
 	removeChild(child) {
@@ -60,10 +130,19 @@ class TreePropertySourceNode extends lilium.core.EventSource {
 		let path = [];
 		let n = this;
 		while(n) {
-			path.unshift(n.name);	
+		if(n.name) // Ignore the node that has no name(usually the root node)
+				path.unshift(n.name);	
 			n = n.parent;
 		}
 		return path.join('.');
+	}
+
+	key() {
+		return this.path();
+	}
+
+	value() {
+		return this.value;
 	}
 
 	/**
@@ -132,6 +211,10 @@ class TreePropertySource extends TreePropertySourceNode {
 		return n? n.value: default_value;	
 	}
 
+	watch(name, func) {
+		this.change(name, func);
+	}
+
 	change(name, func) {
 		var n = this.childTree(name);
 		if(n) {
@@ -162,6 +245,6 @@ class TreePropertySource extends TreePropertySourceNode {
 	}
 }
 
-provides([PropertySource, TreePropertySourceNode, TreePropertySource], 'core');
+provides([PropertySource, TreePropertySourceNode, TreePropertySource, TreeNodeIterator], 'core');
 
 })();

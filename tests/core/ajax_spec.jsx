@@ -9,8 +9,9 @@ describe("core.ajax.suite", function() {
 		a.exec('GET','http://localhost').then((data) => {
 			console.info('A');
 			console.log(data);
-		}).catch(() => {
-			console.info('B');
+		}).catch((e) => {
+			expect(e).toEqual('TIMEOUT');
+			jasmine.done();
 		});
 		clock.tick(10000);
 	});
