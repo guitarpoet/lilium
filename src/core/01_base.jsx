@@ -111,7 +111,7 @@ class Lilium {
 
 var lilium = new Lilium();
 
-lilium.sourceMap();
+lilium.sourceMap(); // Map the source codes to ease the debug process.
 
 lilium.defineIfNotExists('def', (name, func) => { return lilium.defineIfNotExists(name, func); });
 
@@ -130,16 +130,20 @@ def('embed', (module) => {
 });
 
 /**
- * Provide the widget and functions for module
+ * Provide the widget and functions for module. This function will direct provide the Classes to the global lilium namespace
+ * And if in browser context, won't provide any access to these exports other than global lilium namespace.
  */
 def('provides', (widgets, module) => {
 	var e = null;
 
-	if(typeof exports !== 'undefined') {
+	if(!module) // lilium widgets are the default module
+		module = 'widgets';
+
+	if(typeof exports !== 'undefined') { // Prefer nodejs environment
 		e = exports;
 	}
 	else if(typeof window !== 'undefined') {
-		e = window;	
+		e = {};	
 	}
 
 	if(lilium.isArray(widgets)) {
