@@ -7,6 +7,9 @@
 	<script>
 		events.on(document, 'DOMContentLoaded', function(){
 			alert('hello');
+			events.on(document.getElementById('click'), 'click', function(){
+				alert('Hello again');
+			});
 		});
 
 		var a = new lilium.core.Ajax();
@@ -48,6 +51,6 @@
 	</script>
 </head>
 <body>
-	
+	<input id="click" type="button" value="hello">
 </body>
 </html>
