@@ -3,17 +3,48 @@
 <head>
 	<meta charset="UTF-8">
 	<title></title>
-	<script src="core.js"></script>
+	<script src="lilium.js"></script>
 	<script>
 		events.on(window, 'load', function(){
 			alert('hello');
 		});
+
 		var a = new lilium.core.Ajax();
 		a.head('#').then(function(data){
 			console.info(data);
 		}).catch(function(e){
 			console.dir(e);
 		});
+
+		var data = {
+			a: {
+				name: "root",
+				b: {
+					name: "branch",
+					c: {
+						name: "leaf",	
+						value: 1
+					}
+				}
+			}
+		};
+
+		var ds = new lilium.ds.DataStore(data);
+
+		ds.watch('a.b', function(e){
+			console.dir(e);
+		});
+
+		ds.set('a.b.name', 'branch again');
+
+		var iter = ds.entries()[Symbol.iterator]();
+
+		while(true) {
+			var next = iter.next();
+			if(next.done)
+				break;
+			console.info(next.value.key());
+		}
 	</script>
 </head>
 <body>

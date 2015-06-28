@@ -41,12 +41,13 @@ JASMINE=jasmine
 # Files
 #
 #===============================================================================
-CORE_FILES=$(wildcard src/core/*.jsx)
-DS_FILES=$(wildcard src/ds/*.jsx)
-DIST_FILES= ${SPEC_DIR}/core.js ${SPEC_DIR}/ds.js
-TEST_FILES=$(call rwildcard, tests, *.jsx)
-TEST_DIST_FILES=$(foreach f, ${TEST_FILES:jsx=js}, ${SPEC_DIR}/${f})
-TEST_MAP_FILES=$(foreach f, ${TEST_FILES:jsx=js.map}, ${SPEC_DIR}/${f})
+CORE_FILES = $(wildcard src/core/*.jsx)
+DS_FILES = $(wildcard src/ds/*.jsx)
+DIST_FILES = ${SPEC_DIR}/core.js ${SPEC_DIR}/ds.js
+LILIUM = ${SPEC_DIR}/lilium.js
+TEST_FILES = $(call rwildcard, tests, *.jsx)
+TEST_DIST_FILES = $(foreach f, ${TEST_FILES:jsx=js}, ${SPEC_DIR}/${f})
+TEST_MAP_FILES = $(foreach f, ${TEST_FILES:jsx=js.map}, ${SPEC_DIR}/${f})
 
 #===============================================================================
 #
@@ -63,7 +64,10 @@ ${SPEC_DIR}/%_spec.js.map : %_spec.jsx
 #
 #===============================================================================
 
-all: test
+all: ${LILIUM} test
+
+${LILIUM}: ${CORE_FILES} ${DS_FILES}
+	@${BABEL} -o ${LILIUM} -s ${SPEC_DIR}/lilium.js.map ${CORE_FILES} ${DS_FILES}
 
 compile: ${DIST_FILES}
 	@${ECHO} "Compiled."
