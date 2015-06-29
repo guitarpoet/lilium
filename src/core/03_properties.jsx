@@ -91,6 +91,17 @@ class TreePropertySourceNode extends lilium.core.EventSource {
 
 	}
 
+	clear() {
+		if(this.children) {
+			for(let child of this.children) {
+				if(child) {
+					child.clear(); // Clear the children of child to remove all the event handlers
+				}
+				this.removeChild(child);
+			}
+		}
+	}
+
 	nextSibling() {
 		if(this.parent) {
 			let i = this.parent.children.indexOf(this);

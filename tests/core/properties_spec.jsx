@@ -21,6 +21,15 @@ describe("core.properties.suite", function() {
 		expect(root.child(['branch', 'leaf']).value).toBe(1);
 	});
 
+	it("properties.tree.node.clear.test", function() {
+		let root = new lilium.core.TreePropertySourceNode('root');
+		let branch = new lilium.core.TreePropertySourceNode('branch', root);
+		let leaf = new lilium.core.TreePropertySourceNode('leaf', branch, 1);
+		root.clear();
+		expect(root.children.length).toBe(0);
+		
+	});
+
 	it("properties.tree.node.child.tree.test", function() {
 		let root = new lilium.core.TreePropertySourceNode('root');
 		let leaf = root.childTree('branch.leaf');
