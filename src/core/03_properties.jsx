@@ -243,8 +243,9 @@ class TreePropertySource extends TreePropertySourceNode {
 		var p = n;
 		// balloon event
 		while(p && !event.stop) {
-			event.currentTarget = p;
-			p.fire('change', event);
+			let e = lilium.clone(event);
+			e.currentTarget = p;
+			p.fire('change', e);
 			p = p.parent;
 		}
 

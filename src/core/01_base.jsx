@@ -85,6 +85,13 @@ class Lilium {
 	clone(a) {
 		if(this.isArray(a))
 			return a.slice(0);	
+		if(this.isObject(a)) {
+			let ret = {};
+			for(let p in a) {
+				ret[p] = a[p];
+			}
+			return ret;
+		}
 		return null;
 	}
 
