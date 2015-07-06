@@ -6,6 +6,13 @@ describe("core.base.suite", function() {
 		expect(test).toBe(1);
 	});
 
+	it("provide.test", function() {
+		function test() {};
+		provides(test, 'hello', true);
+		expect(hello).not.toBeNull();
+		expect(hello.test).not.toBeNull();
+	});
+
 	it("local.test", function() {
 		expect(typeof hello).toBe('undefined');
 		var hello = lilium.local('hello', function(){});

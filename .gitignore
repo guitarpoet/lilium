@@ -2,3 +2,4 @@
 /spec/*.js
 /node_modules/
 *.map
+/dist/

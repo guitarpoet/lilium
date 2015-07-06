@@ -30,24 +30,38 @@ rwildcard=$(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) $(filter $(subst 
 #
 #===============================================================================
 
-BABEL=babel
-SPEC_DIR=spec
-ECHO=echo
-RM=rm -rf
-JASMINE=jasmine
+ifdef DEBUG
+	SILENT := 
+else
+	SILENT := '@'
+endif
+
+BABEL := babel
+SPEC_DIR := spec
+ECHO := echo
+RM := rm -rf
+CP := cp
+CD := cd
+MKDIR := mkdir -p
+JASMINE := jasmine
+DIST_DIR := dist
 
 #===============================================================================
 #
 # Files
 #
 #===============================================================================
-CORE_FILES = $(wildcard src/core/*.jsx)
-DS_FILES = $(wildcard src/ds/*.jsx)
-DIST_FILES = ${SPEC_DIR}/core.js ${SPEC_DIR}/ds.js
-LILIUM = ${SPEC_DIR}/lilium.js
-TEST_FILES = $(call rwildcard, tests, *.jsx)
-TEST_DIST_FILES = $(foreach f, ${TEST_FILES:jsx=js}, ${SPEC_DIR}/${f})
-TEST_MAP_FILES = $(foreach f, ${TEST_FILES:jsx=js.map}, ${SPEC_DIR}/${f})
+CORE_DIR := src/core
+DS_DIR := src/ds
+CORE_FILES_PATTERN := src/core/*.jsx
+CORE_FILES := $(wildcard $(CORE_FILES_PATTERN))
+DS_FILES_PATTERN := src/ds/*.jsx
+DS_FILES := $(wildcard $(DS_FILES_PATTERN))
+DIST_FILES := $(SPEC_DIR)/core.js ${SPEC_DIR}/ds.js
+LILIUM := $(DIST_DIR)/lilium.js
+TEST_FILES := $(call rwildcard, tests, *.jsx)
+TEST_DIST_FILES := $(foreach f, $(TEST_FILES:jsx=js), $(SPEC_DIR)/$(f))
+TEST_MAP_FILES := $(foreach f, $(TEST_FILES:jsx=js.map), $(SPEC_DIR)/$(f))
 
 #===============================================================================
 #
@@ -55,8 +69,8 @@ TEST_MAP_FILES = $(foreach f, ${TEST_FILES:jsx=js.map}, ${SPEC_DIR}/${f})
 #
 #===============================================================================
 
-${SPEC_DIR}/%_spec.js.map : %_spec.jsx
-	@${BABEL} -d ${SPEC_DIR} -s $@ $<
+$(SPEC_DIR)/%_spec.js.map : %_spec.jsx
+	$(SILENT) $(BABEL) -d $(SPEC_DIR) -s $@ $<
 
 #===============================================================================
 #
@@ -68,29 +82,35 @@ all: build test
 
 build: compile
 
-${LILIUM}: ${CORE_FILES} ${DS_FILES}
-	@${ECHO} "Compiling Lilium."
-	@${BABEL} -o ${LILIUM} -s ${SPEC_DIR}/lilium.js.map ${CORE_FILES} ${DS_FILES}
-	@${ECHO} "Compiled."
+$(LILIUM): $(CORE_FILES) $(DS_FILES)
+	@$(ECHO) "Recreating dist directory"
+	$(SILENT) $(RM) $(DIST_DIR)
+	$(SILENT) $(MKDIR) $(DIST_DIR)
+	@$(ECHO) "Copying files"
+	$(SILENT) $(CP) -r $(CORE_DIR) $(DIST_DIR)
+	$(SILENT) $(CP) -r $(DS_DIR) $(DIST_DIR)
+	@$(ECHO) "Compiling Lilium."
+	$(SILENT) $(BABEL) -o $(LILIUM) -s $(DIST_DIR)/lilium.js.map $(DIST_DIR)/core/*.jsx $(DIST_DIR)/ds/*.jsx
+	@$(ECHO) "Compiled."
 
-compile: ${DIST_FILES} ${LILIUM}
+compile: $(DIST_FILES) $(LILIUM)
 
 clean: 
-	@${ECHO} "Cleaning..."
-	@${RM} ${SPEC_DIR}/*.js ${SPEC_DIR}/*.map ${SPEC_DIR}/tests
-	@${ECHO} "Done."
+	@$(ECHO) "Cleaning..."
+	$(SILENT) $(RM) $(SPEC_DIR)/*.js $(SPEC_DIR)/*.map $(SPEC_DIR)/tests
+	@$(ECHO) "Done."
 
-test: compile ${TEST_MAP_FILES}
-	@${JASMINE}
+test: compile $(TEST_MAP_FILES)
+	@$(JASMINE)
 
-${SPEC_DIR}/core.js: ${CORE_FILES}
-	@${ECHO} "Compiling Core..."
-	@${BABEL} -o ${SPEC_DIR}/core.js -s ${SPEC_DIR}/core.js.map ${CORE_FILES}
-	@${ECHO} "Done."
+$(SPEC_DIR)/core.js: $(CORE_FILES)
+	@$(ECHO) "Compiling Core..."
+	$(SILENT) $(BABEL) -o $(SPEC_DIR)/core.js -s $(SPEC_DIR)/core.js.map $(CORE_FILES)
+	@$(ECHO) "Done."
 
-${SPEC_DIR}/ds.js: ${DS_FILES}
-	@${ECHO} "Compiling DataStore..."
-	@${BABEL} -o ${SPEC_DIR}/ds.js -s ${SPEC_DIR}/ds.js.map ${DS_FILES}
-	@${ECHO} "Done."
+$(SPEC_DIR)/ds.js: $(DS_FILES)
+	@$(ECHO) "Compiling DataStore..."
+	$(SILENT) $(BABEL) -o $(SPEC_DIR)/ds.js -s $(SPEC_DIR)/ds.js.map $(DS_FILES)
+	@$(ECHO) "Done."
 
 .PHONY: all clean test compile build

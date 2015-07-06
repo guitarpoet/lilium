@@ -149,7 +149,7 @@ def('embed', (module) => {
  * Provide the widget and functions for module. This function will direct provide the Classes to the global lilium namespace
  * And if in browser context, won't provide any access to these exports other than global lilium namespace.
  */
-def('provides', (widgets, module) => {
+def('provides', (widgets, module, global) => {
 	var e = null;
 
 	if(!module) // lilium widgets are the default module
@@ -173,8 +173,19 @@ def('provides', (widgets, module) => {
 	
 	lilium[module] = lilium[module] || {};
 
+	if(global) {
+		var g = lilium.global(module) || {};
+	}
+
 	for(let k in e) {
 		lilium[module][k] = e[k];
+		if(global) {
+			g[k] = e[k];
+		}
+	}
+
+	if(global) {
+		lilium.global(module, g);
 	}
 });
 
