@@ -8,6 +8,7 @@
 //
 //==============================================================================
 
+
 +(function(){
 
 class Lilium {
@@ -16,6 +17,14 @@ class Lilium {
 		if(this.inNode()) {
 			require('source-map-support').install();
 		}
+	}
+
+	split(s, sep) {
+		return s.split(sep || ' ');
+	}
+
+	isString(o) {
+		return typeof o === 'string' || o instanceof String;
 	}
 
 	isObject(o) {
