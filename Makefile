@@ -45,6 +45,7 @@ CD := cd
 MKDIR := mkdir -p
 JASMINE := jasmine
 DIST_DIR := dist
+CLIPS_HOME ?= /opt/local/src/clips-tool
 
 #===============================================================================
 #
@@ -82,6 +83,10 @@ all: build test
 
 build: compile
 
+dist: build
+	$(RM) $(CLIPS_HOME)/src/Clips/Widgets/Lilium/js/
+	$(CP) -rf $(DIST_DIR) $(CLIPS_HOME)/src/Clips/Widgets/Lilium/js/
+
 $(LILIUM): $(CORE_FILES) $(DS_FILES)
 	@$(ECHO) "Recreating dist directory"
 	$(SILENT) $(RM) $(DIST_DIR)
@@ -113,4 +118,4 @@ $(SPEC_DIR)/ds.js: $(DS_FILES)
 	$(SILENT) $(BABEL) -o $(SPEC_DIR)/ds.js -s $(SPEC_DIR)/ds.js.map $(DS_FILES)
 	@$(ECHO) "Done."
 
-.PHONY: all clean test compile build
+.PHONY: all clean test compile build dist
