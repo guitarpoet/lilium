@@ -3,11 +3,16 @@
 <head>
 	<meta charset="UTF-8">
 	<title></title>
-	<script src="lilium.js"></script>
+	<script src="core.js"></script>
+	<script src="ds.js"></script>
 	<script>
 		events.on(document, 'DOMContentLoaded', function(){
 			alert('hello');
 			events.on(document.getElementById('click'), 'click', function(){
+				var a = new lilium.core.Ajax();
+				a.get('http://localhost/~jack/jsonp.php', null, null, 'jsonp').then(function(data){
+					console.dir(data);
+				});
 				alert('Hello again');
 			});
 		});
