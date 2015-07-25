@@ -181,6 +181,8 @@ class Ajax {
 	}
 }
 
+lilium.ajax = () => { return new Ajax(); };
+
 provides([Ajax], 'core');
 
 })();
