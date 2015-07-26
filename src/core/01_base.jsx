@@ -309,11 +309,25 @@ class Lilium {
 		}
 		return null;
 	}
+	
+	getConfig() {
+		if(this._config)
+			return this._config;
+
+		if(!this.inNode()) {
+			// Try if the config is in config element
+			let c = document.getElementById('lilium-config');
+			if(c)
+				return JSON.parse(c.innerHTML);
+		}
+
+		return lilium.local('lilium_config', {});	
+	}
 }
 
 var lilium = new Lilium();
 
-lilium._config = lilium.copy(lilium.local('lilium_config', {}), {
+lilium._config = lilium.copy(lilium.getConfig(), {
 	widget_base: lilium.inNode()? 'node_modules' : 'widgets'
 });
 
